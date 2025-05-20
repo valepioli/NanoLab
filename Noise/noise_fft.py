@@ -1,25 +1,38 @@
+""" 
+Take as input the noise datafiles.
+Return plots of power spectra for each resistance.
+Return plots of mean power vs resistance.
+"""
+
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')  # Prova con 'Qt5Agg' se 'TkAgg' non funziona
 import matplotlib.pyplot as plt
+import re
 
 files = ["FFT_220.9kohm_noise_filter.txt", "FFT_149.9kohm_noise_filter.txt", "FFT_100.2kohm_noise_filter.txt",
          "FFT_55.67kohm_noise_filter.txt", "FFT_9.99kohm_noise_filter.txt", "FFT_0.998kohm_noise_filter.txt"]
 
-r_values = ["220.9 kOhm", "149.9 kOhm", "100.2 kOhm", "55.67 kOhm", "9.99 kOhm", "0.99 kOhm"]
+# Define numerical resistance values in kOhm
+r_values_kohm = np.array([220.9, 149.9, 100.2, 55.67, 9.99, 0.99])
 
 def compute_power_spectrum(v, N, dt):
     """ Compute the power spectrum of the signal """
     fft_vals = np.fft.rfft(v)  # Compute the FFT (only positive frequencies)
-    power_spectrum = (np.abs(fft_vals) ** 2) / (N * dt)  # Correct normalization
+    power_spectrum = (np.abs(fft_vals) ** 2) / (N * dt)  # Normalized power
     return power_spectrum
 
-# Create a large figure window
-fig = plt.figure(figsize=(20, 10))
+# Create the first figure for the individual power spectra
+fig1 = plt.figure(figsize=(20, 10))
+rows_fig1, cols_fig1 = 2, 3  # Arrange the plots in 2 rows and 3 columns
 
-rows, cols = 2, 3  # Arrange the plots in 2 rows and 3 columns
+# Lists to store computed values for the second figure's plots
+V_rms_2_list = []
+area_list = []
 
-for idx, (file, r) in enumerate(zip(files, r_values)):
+# Loop through files and resistance values
+for idx, file in enumerate(files):
+    r_kohm = r_values_kohm[idx] # Get the current resistance in kOhm
+
     with open(file, 'r') as f:
         lines = f.readlines()[2:]  # Skip the first two header lines
 
@@ -36,10 +49,9 @@ for idx, (file, r) in enumerate(zip(files, r_values)):
 
     N_points = len(time)
     dt = time[1] - time[0]  # Time step
-    t_max = time[-1]
     power = compute_power_spectrum(v_rms, N_points, dt)
 
-    # Compute frequency values correctly
+    # Compute frequency values (positive only)
     freq = np.fft.rfftfreq(N_points, dt)
 
     # Apply the mask for frequencies between 1000 Hz and 9000 Hz
@@ -47,12 +59,41 @@ for idx, (file, r) in enumerate(zip(files, r_values)):
     freq_masked = freq[mask]
     power_masked = power[mask]
 
-    plt.subplot(rows, cols, idx + 1)  # Place the plot in the grid
+    # Compute V_rms^2 and Area for the second set of plots
+    V_rms_2 = np.std(v_rms)**2
+    Area = np.trapz(power_masked, freq_masked)
+
+    V_rms_2_list.append(V_rms_2)
+    area_list.append(Area)
+
+    # Plotting for the first figure
+    plt.figure(fig1.number) # Set current figure to fig1 explicitly
+    plt.subplot(rows_fig1, cols_fig1, idx + 1)  # Place the plot in the grid
     plt.plot(freq_masked, power_masked)
     plt.xlabel("Frequency (Hz)")
-    plt.ylabel("Power Density (V^2/Hz)")
-    plt.title(f"Noise Power Spectrum - {r}")
+    plt.ylabel("Power Density (V$^2$/Hz)")
+    plt.title(f"Noise Power Spectrum - {r_kohm} kOhm") # Added kOhm to title
     plt.grid()
 
-plt.tight_layout()  # Optimize spacing between plots
-plt.show()
+fig1.tight_layout() 
+
+# Create a new figure for V_rms^2 vs R and Area vs R
+fig2, axes = plt.subplots(1, 2, figsize=(14, 6)) # Using 'axes' for cleaner subplot handling
+
+# Plot V_rms**2 vs R on the first subplot of fig2
+axes[0].plot(r_values_kohm, V_rms_2_list, 'o-', label='$V_{rms}^2$') # Plot R directly in kOhm
+axes[0].set_xlabel("Resistance (kOhm)")
+axes[0].set_ylabel("$V_{rms}^2$")
+axes[0].set_title("$V_{rms}^2$ vs Resistance")
+axes[0].grid(True)
+
+# Plot Area vs R on the second subplot of fig2
+axes[1].plot(r_values_kohm, area_list, 'x-', label='Area') # Plot R directly in kOhm
+axes[1].set_xlabel("Resistance (kOhm)")
+axes[1].set_ylabel("Area (V$^2$)") # Units for area would be V^2/Hz * Hz = V^2
+axes[1].set_title("Area (Integrated Power) vs Resistance")
+axes[1].grid(True)
+
+fig2.tight_layout() 
+
+plt.show() # Display both figures
