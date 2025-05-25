@@ -17,7 +17,7 @@ def gain_function(f, G0, fb):
     return G0 / np.sqrt(1 + (f / fb)**2)
 
 # Load data
-data = np.loadtxt("gain_vs_frequenza.txt", skiprows=2)
+data = np.loadtxt("gain_vs_freq.txt", skiprows=2)
 frequencies = data[:, 1]
 gains = data[:, 0]
 
