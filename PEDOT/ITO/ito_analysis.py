@@ -2,6 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+plt.rcParams.update({'font.size': 20})
+
+
 # Load the data from the files
 file_paths = {
     'phase_points': 'phase-freq_ITO_points.txt',

@@ -2,6 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+plt.rcParams.update({'font.size': 20})
+
+
 # Define the file paths for the new set of files
 file_paths = {
     'phase_points': 'phase-freq_edITO_points-fullRC.txt',
@@ -36,7 +40,7 @@ ax1.plot(data['phase_fit_fullRC'][freq_col], data['phase_fit_fullRC'][phase_col]
 
 # Phase Fit - Simplified RC
 ax1.plot(data['phase_fit_simplifiedRC'][freq_col], data['phase_fit_simplifiedRC'][phase_col],
-         label='Fit (Simplified Circuit)', color='orange', linestyle='--')
+         label='Fit (Simplified Circuit)', color='green', linestyle='-')
 
 ax1.set_xscale('log')
 ax1.set_xlabel(freq_col)
@@ -56,7 +60,7 @@ ax2.plot(data['z_fit_fullRC'][freq_col], data['z_fit_fullRC'][z_col],
 
 # Z Fit - Simplified RC
 ax2.plot(data['z_fit_simplifiedRC'][freq_col], data['z_fit_simplifiedRC'][z_col],
-         label='Fit (Simplified Circuit)', color='brown', linestyle='--')
+         label='Fit (Simplified Circuit)', color='brown', linestyle='-')
 
 ax2.set_xscale('log')
 ax2.set_xlabel(freq_col)

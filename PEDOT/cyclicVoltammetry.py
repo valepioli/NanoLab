@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+plt.rcParams.update({'font.size': 20})
+
 # Load the ITO_cyclicVoltammetry.txt file
 # Assuming semicolon as delimiter and comma as decimal separator
 try:
